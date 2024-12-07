@@ -16,6 +16,7 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
+    private int uniqueId = 1;
 
     @GetMapping
     public List<User> getAll() {
@@ -24,8 +25,10 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
+        user.setId(uniqueId++);
         log.info("Пользователь {} создан.", user.getName());
-        return users.put(user.getId(), user);
+        users.put(user.getId(), user);
+        return user;
     }
 
     @PutMapping
@@ -38,6 +41,7 @@ public class UserController {
         }
 
         log.info("Пользователь {} обновлен.", user.getName());
-        return users.put(userId, user);
+        users.put(userId, user);
+        return user;
     }
 }

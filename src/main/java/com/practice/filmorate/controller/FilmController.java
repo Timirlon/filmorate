@@ -16,6 +16,7 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
+    private int uniqueId = 1;
 
     @GetMapping
     public List<Film> getAll() {
@@ -24,8 +25,10 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
+        film.setId(uniqueId++);
         log.info("Фильм {} добавлен.", film.getName());
-        return films.put(film.getId(), film);
+        films.put(film.getId(), film);
+        return film;
     }
 
     @PutMapping
@@ -38,6 +41,7 @@ public class FilmController {
         }
 
         log.info("Фильм {} обновлен.", film.getName());
-        return films.put(filmId, film);
+        films.put(filmId, film);
+        return film;
     }
 }

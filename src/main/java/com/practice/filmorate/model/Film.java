@@ -13,19 +13,22 @@ import java.time.Month;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Film {
-    final LocalDate FIRST_FILM_RELEASE_DATE = LocalDate.of(1895, Month.DECEMBER, 25);
+    static final LocalDate FIRST_FILM_RELEASE_DATE = LocalDate.of(1895, Month.DECEMBER, 28);
 
-    @NotNull
     int id;
-    @NotBlank
+
+    @NotBlank(message = "Название не может быть пустым")
     String name;
-    @Size(max = 200)
+
+    @Size(max = 200, message = "Описание фильма превышает лимит символов")
     String description;
-    @PastOrPresent
+
     LocalDate releaseDate;
-    @Positive
+
+    @Positive(message = "Продолжительность фильма должна быть положительной")
     int duration;
-    @AssertTrue
+
+    @AssertTrue(message = "Недопустимая дата выпуска фильма")
     boolean isAfterDecember28th1895;
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
@@ -35,11 +38,11 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
 
-        this.isAfterDecember28th1895 = releaseDate.isAfter(FIRST_FILM_RELEASE_DATE);
+        isAfterDecember28th1895 = releaseDate.isAfter(FIRST_FILM_RELEASE_DATE);
     }
 
-    public void setReleaseDate(LocalDate releaseDate) {
+    private void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
-        this.isAfterDecember28th1895 = releaseDate.isAfter(FIRST_FILM_RELEASE_DATE);
+        isAfterDecember28th1895 = releaseDate.isAfter(FIRST_FILM_RELEASE_DATE);
     }
 }

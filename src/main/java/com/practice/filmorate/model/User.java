@@ -12,14 +12,13 @@ import java.time.LocalDate;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
-    @NotNull
     int id;
-    @Email
+    @Email(message = "Некорректный адрес эл.почты")
     String email;
-    @NotBlank
+    @NotBlank(message = "Логин не может быть пустым")
     String login;
     String name;
-    @PastOrPresent
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
     LocalDate birthday;
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
