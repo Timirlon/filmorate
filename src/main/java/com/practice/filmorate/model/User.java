@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,16 +23,28 @@ public class User {
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     LocalDate birthday;
 
+    Set<Integer> friends;
+
     public User(int id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;
         this.birthday = birthday;
 
+        this.friends = new HashSet<>();
+
         if (name == null || name.isBlank()) {
             this.name = login;
         } else {
             this.name = name;
         }
+    }
+
+    public void addFriend(int id) {
+        friends.add(id);
+    }
+
+    public void removeFriend(int id) {
+        friends.remove(id);
     }
 }
