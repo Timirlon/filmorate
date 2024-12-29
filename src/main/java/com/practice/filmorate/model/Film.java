@@ -1,5 +1,6 @@
 package com.practice.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,9 +34,10 @@ public class Film {
     int duration;
 
     @AssertTrue(message = "Недопустимая дата выпуска фильма")
+    @JsonIgnore
     boolean isAfterDecember28th1895;
 
-    Set<Integer> likes;
+    final Set<Integer> likes = new HashSet<>();
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;
@@ -44,7 +46,6 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
 
-        this.likes = new HashSet<>();
 
         isAfterDecember28th1895 = releaseDate.isAfter(FIRST_FILM_RELEASE_DATE);
     }
@@ -66,6 +67,7 @@ public class Film {
         likes.remove(userId);
     }
 
+    @JsonIgnore
     public int getNumberOfLikes() {
         return likes.size();
     }

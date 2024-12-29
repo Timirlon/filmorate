@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ErrorHandler {
+    // можно сюда логирование warn
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handle(ValidationException e) {
@@ -21,9 +22,9 @@ public class ErrorHandler {
         return new ErrorResponse("Объект не найден.", e.getMessage());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handle(Throwable e) {
-        return new ErrorResponse("Ошибка сервера.", e.getMessage());
-    }
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    public ErrorResponse handle(Throwable e) {
+//        return new ErrorResponse("Ошибка сервера.", e.getMessage());
+//    }
 }

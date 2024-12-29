@@ -5,13 +5,12 @@ import com.practice.filmorate.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryUserStorage implements UserStorage {
+    private final Map<Integer, User> users = new HashMap<>();
     private int uniqueId = 1;
 
     @Override
@@ -21,7 +20,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Optional<User> findById(int id) {
-        return Optional.of(users.get(id));
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
@@ -38,6 +37,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User update(User user) {
         int userId = user.getId();
 
+        // ...
         if (!users.containsKey(userId)) {
             log.warn("Не удалось обновить - пользователь не найден.");
             throw new NotFoundException("Пользователь не найден.");

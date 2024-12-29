@@ -12,6 +12,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    // private
     public final UserStorage storage;
 
     public void addFriend(int userId, int friendId) {
@@ -47,9 +48,7 @@ public class UserService {
         return user.getFriends()
                 .stream()
                 .filter(commonFriend -> friend.getFriends().contains(commonFriend))
-                .map(storage::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .map(this::findById)
                 .toList();
     }
 
@@ -58,6 +57,7 @@ public class UserService {
             throw new NotFoundException("Недействительный id пользователя: " + id);
         }
 
+        // orElseThrow
         return storage.findById(id).get();
     }
 }

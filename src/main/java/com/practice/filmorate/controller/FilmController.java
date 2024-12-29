@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/films")
 public class FilmController {
+    //
     private final FilmService service;
 
     @GetMapping
@@ -47,7 +48,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getTopFilms(@RequestParam(required = false, defaultValue = "10") int count) {
+    public List<Film> getTopFilms(@RequestParam(defaultValue = "10") int count) {
         return service.findAllPopular(count);
     }
 }

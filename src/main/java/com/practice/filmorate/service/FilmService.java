@@ -19,12 +19,14 @@ public class FilmService {
     public void addLike(int userId, int filmId) {
         Film film = findById(filmId);
 
-        if (checkIfUserExists(userId)) {
-            film.addLike(userId);
-        }
+        checkIfUserExists(userId);
+        film.addLike(userId);
+
     }
 
     public void removeLike(int userId, int filmId) {
+        checkIfUserExists(userId);
+
         Film film = findById(filmId);
 
         film.removeLike(userId);
@@ -33,7 +35,7 @@ public class FilmService {
     public List<Film> findAllPopular(int count) {
         return filmStorage.findAll()
                 .stream()
-                .sorted(new FilmComparator())
+                .sorted(new FilmComparator().reversed())
                 .limit(count)
                 .toList();
     }
@@ -46,7 +48,7 @@ public class FilmService {
         return filmStorage.findById(id).get();
     }
 
-    private boolean checkIfUserExists(int id) {
-        return userStorage.findById(id).isPresent();
+    private void checkIfUserExists(int id) {
+        userStorage.findById(id).orElseThrow(() -> new NotFoundException());
     }
 }

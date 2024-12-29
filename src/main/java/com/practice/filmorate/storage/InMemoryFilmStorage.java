@@ -5,13 +5,12 @@ import com.practice.filmorate.model.Film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
+    private final Map<Integer, Film> films = new HashMap<>();
     private int uniqueId = 1;
 
     @Override
@@ -21,7 +20,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Optional<Film> findById(int id) {
-        return Optional.of(films.get(id));
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
@@ -38,6 +37,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film update(Film film) {
         int filmId = film.getId();
 
+        // вынести в сервис
         if (!films.containsKey(filmId)) {
             log.warn("Не удалось обновить - фильм не найден.");
             throw new NotFoundException("Фильм не найден.");

@@ -5,8 +5,6 @@ import com.practice.filmorate.model.Film;
 import java.util.*;
 
 public interface FilmStorage {
-    Map<Integer, Film> films = new HashMap<>();
-
     List<Film> findAll();
 
     Optional<Film> findById(int id);
