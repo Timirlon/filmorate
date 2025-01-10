@@ -1,7 +1,7 @@
 package com.practice.filmorate.service;
 
 import com.practice.filmorate.model.Genre;
-import com.practice.filmorate.storage.GenreStorage;
+import com.practice.filmorate.storage.BasicDbStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class GenreService {
-    private final GenreStorage genreStorage;
+    private final BasicDbStorage<Genre> genreStorage;
 
     public List<Genre> findAll() {
         return genreStorage.findAll();

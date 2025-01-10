@@ -1,7 +1,7 @@
 package com.practice.filmorate.storage.impl;
 
 import com.practice.filmorate.model.Genre;
-import com.practice.filmorate.storage.GenreStorage;
+import com.practice.filmorate.storage.BasicDbStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
-public class GenreDbStorage implements GenreStorage {
+public class GenreDbStorage implements BasicDbStorage<Genre> {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_ALL_QUERY = "SELECT * FROM genres";
