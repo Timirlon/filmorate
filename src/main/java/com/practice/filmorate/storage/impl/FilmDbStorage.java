@@ -3,7 +3,7 @@ package com.practice.filmorate.storage.impl;
 import com.practice.filmorate.model.Film;
 import com.practice.filmorate.model.Genre;
 import com.practice.filmorate.model.Mpa;
-import com.practice.filmorate.storage.FullDbStorage;
+import com.practice.filmorate.storage.FullStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -12,21 +12,17 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class FilmDbStorage implements FullDbStorage<Film> {
+public class FilmDbStorage implements FullStorage<Film> {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_ALL_QUERY = """
             SELECT f.id AS film_id, f.name AS film_name, f.description AS film_desc, f.RELEASE_DATE AS release, f.duration AS duration,
-            g.id AS genre_id, g.name AS genre_name, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_desc
+            m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_desc
             FROM films f
-            JOIN films_genres fg ON f.id = fg.film_id
-            JOIN genres g ON fg.genre_id = g.id
             JOIN mpa m ON f.mpa_id = m.id
             """;
 
@@ -37,29 +33,65 @@ public class FilmDbStorage implements FullDbStorage<Film> {
 
     @Override
     public Optional<Film> findById(int id) {
-        String query = GET_ALL_QUERY + " WHERE f.id = ?";
+        String getByIdQuery = GET_ALL_QUERY + " WHERE f.id = ?";
 
-        return Optional.of(jdbcTemplate.query(query, this::mapRow, id)
+        Optional<Film> film = jdbcTemplate.query(getByIdQuery, this::mapRow, id)
                 .stream()
-                .findFirst()
-                .orElseThrow());
+                .findFirst();
+
+
+        if (film.isPresent()) {
+            Film value = film.get();
+
+            value.addGenres(getGenresByFilmId(id));
+
+            value.addLikes(getLikesByFilmId(id));
+        }
+
+        return film;
     }
 
     @Override
     public Film create(Film film) {
-        int id = insertIntoFilmsTableAndReturnKey(film).intValue();
+        SimpleJdbcInsert filmsInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("films")
+                .usingGeneratedKeyColumns("id");
+
+        Map<String, Object> filmsMap = Map.of(
+                "name", film.getName(),
+                "description", film.getDescription(),
+                "release_date", film.getReleaseDate(),
+                "duration", film.getDuration(),
+                "mpa_id", film.getMpa().getId()
+        );
+
+        int id = filmsInsert.executeAndReturnKey(filmsMap).intValue();
         film.setId(id);
 
+
         insertIntoFilmsGenresTable(film);
+
+        insertIntoLikesTable(film);
+
 
         return film;
     }
 
     @Override
     public Film update(Film film) {
-        updateFilmsTable(film);
+        String updateFilmsQuery = """                
+                UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ?
+                WHERE id = ?
+                """;
+
+        jdbcTemplate.update(
+                updateFilmsQuery, film.getName(), film.getDescription(), film.getReleaseDate(),
+                film.getDuration(), film.getMpa().getId(), film.getId()
+        );
 
         updateFilmsGenresTable(film);
+
+        updateLikesTable(film);
 
         return film;
     }
@@ -71,9 +103,6 @@ public class FilmDbStorage implements FullDbStorage<Film> {
         LocalDate releaseDate = rs.getDate("release").toLocalDate();
         int duration = rs.getInt("duration");
 
-        int genreId = rs.getInt("genre_id");
-        String genreName = rs.getString("genre_name");
-        Genre genre = new Genre(genreId, genreName);
 
         int mpaId = rs.getInt("mpa_id");
         String mpaName = rs.getString("mpa_name");
@@ -81,52 +110,81 @@ public class FilmDbStorage implements FullDbStorage<Film> {
         Mpa mpa = new Mpa(mpaId, mpaName, mpaDesc);
 
 
-        return new Film(filmId, filmName, filmDesc, releaseDate, duration, genre, mpa);
+        return new Film(filmId, filmName, filmDesc, releaseDate, duration, mpa);
     }
 
-    private Number insertIntoFilmsTableAndReturnKey(Film film) {
-        SimpleJdbcInsert FilmsInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("films")
-                .usingGeneratedKeyColumns("id");
+    private Genre mapRowGenre(ResultSet rs, int rowNum) throws SQLException {
+        int genreId = rs.getInt("id");
+        String genreName = rs.getString("name");
 
-        Map<String, Object> map = Map.of(
-                "name", film.getName(),
-                "description", film.getDescription(),
-                "release_date", film.getReleaseDate(),
-                "duration", film.getDuration(),
-                "mpa_id", film.getMpa().getId()
-        );
+        return new Genre(genreId, genreName);
+    }
 
-        return FilmsInsert.executeAndReturnKey(map);
+    private Integer mapRowLike(ResultSet rs, int rowNum) throws SQLException {
+        return rs.getInt("user_id");
+    }
+
+    private Set<Genre> getGenresByFilmId(int id) {
+        String getGenresQuery = """
+                SELECT g.id, g.name FROM genres g
+                JOIN films_genres fg
+                ON g.id = fg.genre_id
+                WHERE fg.film_id = ?
+                """;
+
+        return new HashSet<>(jdbcTemplate.query(getGenresQuery, this::mapRowGenre, id));
+    }
+
+    private Set<Integer> getLikesByFilmId(int id) {
+        String getLikesQuery = """
+                SELECT user_id FROM likes
+                WHERE film_id = ?
+                """;
+
+        return new HashSet<>(jdbcTemplate.query(getLikesQuery, this::mapRowLike, id));
     }
 
     private void insertIntoFilmsGenresTable(Film film) {
-        SimpleJdbcInsert filmsGenresInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("films_genres");
+        if (film.getGenres().isEmpty()) {
+            return;
+        }
 
-        Map<String, Object> filmsGenresMap = Map.of(
-                "film_id", film.getId(),
-                "genre_id", film.getGenre().getId()
-        );
+        String insertQuery = """
+        INSERT INTO films_genres (film_id, genre_id)
+        VALUES (?, ?)
+        """;
 
-        filmsGenresInsert.execute(filmsGenresMap);
+        for (Genre genre : film.getGenres()) {
+            jdbcTemplate.update(insertQuery, film.getId(), genre.getId());
+        }
     }
 
-    private void updateFilmsTable(Film film) {
-        String updateFilmsQuery = """                
-                UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ?
-                WHERE id = ?
+    public void insertIntoLikesTable(Film film) {
+        if (film.getLikes().isEmpty()) {
+            return;
+        }
+
+        String insertQuery = """
+                INSERT INTO likes (film_id, user_id)
+                VALUES (?, ?)
                 """;
 
-        jdbcTemplate.update(
-                updateFilmsQuery, film.getName(), film.getDescription(), film.getReleaseDate(),
-                film.getDuration(), film.getMpa().getId(), film.getId()
-        );
+        for (int userId : film.getLikes()) {
+            jdbcTemplate.update(insertQuery, film.getId(), userId);
+        }
     }
 
     private void updateFilmsGenresTable(Film film) {
-        String updateFilmsGenresQuery = "UPDATE films_genres SET genre_id = ? WHERE film_id = ?";
+        String deleteQuery = "DELETE FROM films_genres WHERE film_id = ?";
+        jdbcTemplate.update(deleteQuery, film.getId());
 
-        jdbcTemplate.update(updateFilmsGenresQuery, film.getGenre().getId(), film.getId());
+        insertIntoFilmsGenresTable(film);
+    }
+
+    private void updateLikesTable(Film film) {
+        String deleteQuery = "DELETE FROM likes WHERE film_id = ?";
+        jdbcTemplate.update(deleteQuery, film.getId());
+
+        insertIntoLikesTable(film);
     }
 }

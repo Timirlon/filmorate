@@ -1,8 +1,9 @@
 package com.practice.filmorate.service;
 
 import com.practice.filmorate.exceptions.NotFoundException;
+import com.practice.filmorate.exceptions.ValidationException;
 import com.practice.filmorate.model.User;
-import com.practice.filmorate.storage.FullDbStorage;
+import com.practice.filmorate.storage.FullStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final FullDbStorage<User> storage;
+    private final FullStorage<User> storage;
 
     public void addFriend(int userId, int friendId) {
         User user = findById(userId);
@@ -60,10 +61,30 @@ public class UserService {
     }
 
     public User create(User user) {
+        validate(user);
+        replaceUserNameIfItsBlank(user);
+
         return storage.create(user);
     }
 
     public User update(User user) {
+        validate(user);
+        replaceUserNameIfItsBlank(user);
+
+        findById(user.getId());
+
         return storage.update(user);
+    }
+
+    private void replaceUserNameIfItsBlank(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+    }
+
+    private void validate(User user) {
+        if (user.getLogin().contains(" ")) {
+            throw new ValidationException("Логин не может содержать пробелы.");
+        }
     }
 }

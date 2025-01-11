@@ -22,7 +22,7 @@ public class FilmValidationTest {
 
     @Test
     public void emptyNameTest() {
-        Film film = new Film(1, "", "short description", LocalDate.of(2024, 1, 1), 120);
+        Film film = new Film(1, "", "short description", LocalDate.of(2024, 1, 1), 120, null);
         String expected = "Название не может быть пустым";
 
         String actual = validateAndGetFirstMessageTemplate(film);
@@ -33,7 +33,7 @@ public class FilmValidationTest {
     @Test
     public void lengthOfDescriptionMoreThan200Test() {
         String filmDescription = "A".repeat(201);
-        Film film = new Film(1, "Зеленый слоник", filmDescription, LocalDate.of(2024, 1, 1), 120);
+        Film film = new Film(1, "Зеленый слоник", filmDescription, LocalDate.of(2024, 1, 1), 120, null);
         String expected = "Описание фильма превышает лимит символов";
 
         String actual = validateAndGetFirstMessageTemplate(film);
@@ -43,7 +43,7 @@ public class FilmValidationTest {
 
     @Test
     public void releaseDateIsBeforeDecember28th1895() {
-        Film film = new Film(1, "Зеленый слоник", "Зеленый слоник", LocalDate.of(1895, Month.DECEMBER, 27), 120);
+        Film film = new Film(1, "Зеленый слоник", "Зеленый слоник", LocalDate.of(1895, Month.DECEMBER, 27), 120,  null);
         String expected = "Недопустимая дата выпуска фильма";
 
         String actual = validateAndGetFirstMessageTemplate(film);
@@ -53,7 +53,7 @@ public class FilmValidationTest {
 
     @Test
     public void negativeDurationTest() {
-        Film film = new Film(1, "Зеленый слоник", "Зеленый слоник", LocalDate.now(), -30);
+        Film film = new Film(1, "Зеленый слоник", "Зеленый слоник", LocalDate.now(), -30, null);
         String expected = "Продолжительность фильма должна быть положительной";
 
         String actual = validateAndGetFirstMessageTemplate(film);

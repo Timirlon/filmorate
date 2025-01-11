@@ -1,7 +1,7 @@
 package com.practice.filmorate.storage.impl;
 
 import com.practice.filmorate.model.Genre;
-import com.practice.filmorate.storage.BasicDbStorage;
+import com.practice.filmorate.storage.BaseStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -11,9 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Component
-public class GenreDbStorage implements BasicDbStorage<Genre> {
+@RequiredArgsConstructor
+public class GenreDbStorage implements BaseStorage<Genre> {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_ALL_QUERY = "SELECT * FROM genres";
@@ -25,8 +25,9 @@ public class GenreDbStorage implements BasicDbStorage<Genre> {
 
     @Override
     public Optional<Genre> findById(int id) {
-        String sql = GET_ALL_QUERY + " WHERE id = ?;";
-        return jdbcTemplate.query(sql, this::mapRow, id)
+        String getByIdQuery = GET_ALL_QUERY + " WHERE id = ?";
+
+        return jdbcTemplate.query(getByIdQuery, this::mapRow, id)
                 .stream()
                 .findFirst();
     }

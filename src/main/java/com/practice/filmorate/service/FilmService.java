@@ -1,9 +1,13 @@
 package com.practice.filmorate.service;
 
 import com.practice.filmorate.exceptions.NotFoundException;
+import com.practice.filmorate.exceptions.ValidationException;
 import com.practice.filmorate.model.Film;
+import com.practice.filmorate.model.Genre;
+import com.practice.filmorate.model.Mpa;
 import com.practice.filmorate.model.User;
-import com.practice.filmorate.storage.FullDbStorage;
+import com.practice.filmorate.storage.BaseStorage;
+import com.practice.filmorate.storage.FullStorage;
 import com.practice.filmorate.utils.FilmComparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,8 +17,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FilmService {
-    private final FullDbStorage<Film> filmStorage;
-    private final FullDbStorage<User> userStorage;
+    private final FullStorage<Film> filmStorage;
+    private final FullStorage<User> userStorage;
+    private final BaseStorage<Mpa> mpaStorage;
+    private final BaseStorage<Genre> genreStorage;
 
     public void addLike(int userId, int filmId) {
         Film film = findById(filmId);
@@ -45,23 +51,33 @@ public class FilmService {
     }
 
     public Film findById(int id) {
-        if (filmStorage.findById(id).isEmpty()) {
-            throw new NotFoundException("Недействительный id фильма: " + id);
-        }
-
-        return filmStorage.findById(id).get();
+        return filmStorage.findById(id).orElseThrow(() -> new NotFoundException("Недействительный id фильма: " + id));
     }
 
     public Film create(Film film) {
+        validateFilm(film);
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
+        findById(film.getId());
 
         return filmStorage.update(film);
     }
 
     private void checkIfUserExists(int id) {
         userStorage.findById(id).orElseThrow(() -> new NotFoundException("Недействительный id пользователя: " + id));
+    }
+
+    private void validateFilm(Film film) {
+        int mpaId = film.getMpa().getId();
+        mpaStorage.findById(mpaId).orElseThrow(() -> new ValidationException("Фильму задан некорректный MPA с id: " + mpaId));
+
+        List<Genre> genres = genreStorage.findAll();
+        for (Genre genre : film.getGenres()) {
+            if (!genres.contains(genre)) {
+                throw new ValidationException("Фильму присвоен некорректный жанр с id: " + genre.getId());
+            }
+        }
     }
 }

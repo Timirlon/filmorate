@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,9 +26,9 @@ public class Film {
     LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительной")
     int duration;
-    Genre genre;
     Mpa mpa;
 
+    final Set<Genre> genres = new HashSet<>();
     final Set<Integer> likes = new HashSet<>();
 
 
@@ -42,5 +43,13 @@ public class Film {
     @JsonIgnore
     public int getNumberOfLikes() {
         return likes.size();
+    }
+
+    public void addGenres(Collection<Genre> newGenres) {
+        genres.addAll(newGenres);
+    }
+
+    public void addLikes(Collection<Integer> newLikes) {
+        likes.addAll(newLikes);
     }
 }
