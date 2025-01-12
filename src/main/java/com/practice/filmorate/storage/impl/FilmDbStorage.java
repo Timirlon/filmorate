@@ -96,6 +96,27 @@ public class FilmDbStorage implements FullStorage<Film> {
         return film;
     }
 
+    public void addLike(int userId, int filmId) {
+        String insertQuery = """
+                INSERT INTO likes (film_id, user_id)
+                VALUES (?, ?)
+                """;
+
+        jdbcTemplate.update(insertQuery, filmId, userId);
+    }
+
+    public List<Film> findAllPopular(int count) {
+        String getPopularQuery = GET_ALL_QUERY + """               
+                LEFT JOIN likes l ON f.id = l.film_id
+                GROUP BY f.id
+                ORDER BY COUNT(l.user_id) DESC
+                LIMIT ?
+                """;
+
+        return jdbcTemplate.query(getPopularQuery, this::mapRow, count);
+    }
+
+
     private Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         int filmId = rs.getInt("film_id");
         String filmName = rs.getString("film_name");
@@ -144,7 +165,7 @@ public class FilmDbStorage implements FullStorage<Film> {
         return new HashSet<>(jdbcTemplate.query(getLikesQuery, this::mapRowLike, id));
     }
 
-    private void insertIntoFilmsGenresTable(Film film) {
+    private void insertIntoFilmsGenresTable(Film film /*int filmId, int userID*/) {
         if (film.getGenres().isEmpty()) {
             return;
         }
@@ -159,18 +180,14 @@ public class FilmDbStorage implements FullStorage<Film> {
         }
     }
 
-    public void insertIntoLikesTable(Film film) {
+    private void insertIntoLikesTable(Film film) {
         if (film.getLikes().isEmpty()) {
             return;
         }
 
-        String insertQuery = """
-                INSERT INTO likes (film_id, user_id)
-                VALUES (?, ?)
-                """;
 
         for (int userId : film.getLikes()) {
-            jdbcTemplate.update(insertQuery, film.getId(), userId);
+            addLike(userId, film.getId());
         }
     }
 

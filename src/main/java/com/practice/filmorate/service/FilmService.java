@@ -8,6 +8,7 @@ import com.practice.filmorate.model.Mpa;
 import com.practice.filmorate.model.User;
 import com.practice.filmorate.storage.BaseStorage;
 import com.practice.filmorate.storage.FullStorage;
+import com.practice.filmorate.storage.impl.FilmDbStorage;
 import com.practice.filmorate.utils.FilmComparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FilmService {
-    private final FullStorage<Film> filmStorage;
+    private final FilmDbStorage filmStorage;
     private final FullStorage<User> userStorage;
     private final BaseStorage<Mpa> mpaStorage;
     private final BaseStorage<Genre> genreStorage;
@@ -28,6 +29,7 @@ public class FilmService {
         checkIfUserExists(userId);
         film.addLike(userId);
 
+        filmStorage.addLike(userId, filmId);
     }
 
     public void removeLike(int userId, int filmId) {
@@ -39,11 +41,7 @@ public class FilmService {
     }
 
     public List<Film> findAllPopular(int count) {
-        return filmStorage.findAll()
-                .stream()
-                .sorted(new FilmComparator().reversed())
-                .limit(count)
-                .toList();
+        return filmStorage.findAllPopular(count);
     }
 
     public List<Film> findAll() {
