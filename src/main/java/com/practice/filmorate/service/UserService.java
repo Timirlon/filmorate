@@ -15,43 +15,6 @@ import java.util.Optional;
 public class UserService {
     private final FullStorage<User> storage;
 
-    public void addFriend(int userId, int friendId) {
-        User user = findById(userId);
-        User friend = findById(friendId);
-
-        user.addFriend(friendId);
-        friend.addFriend(userId);
-    }
-
-    public void removeFriend(int userId, int friendId) {
-        User user = findById(userId);
-        User friend = findById(friendId);
-
-        user.removeFriend(friendId);
-        friend.removeFriend(userId);
-    }
-
-    public List<User> findAllFriends(int userId) {
-        User user = findById(userId);
-
-        return user.getFriends().stream()
-                .map(storage::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-    }
-
-    public List<User> findCommonFriends(int userId, int friendId) {
-        User user = findById(userId);
-        User friend = findById(friendId);
-
-        return user.getFriends()
-                .stream()
-                .filter(commonFriend -> friend.getFriends().contains(commonFriend))
-                .map(this::findById)
-                .toList();
-    }
-
     public List<User> findAll() {
         return storage.findAll();
     }
@@ -74,6 +37,48 @@ public class UserService {
         findById(user.getId());
 
         return storage.update(user);
+    }
+
+    public void addFriend(int userId, int friendId) {
+        User user = findById(userId);
+        User friend = findById(friendId);
+
+        if (!user.isFriend(friendId)) {
+            user.addFriend(friendId);
+
+            storage.update(user);
+        }
+    }
+
+    public void removeFriend(int userId, int friendId) {
+        User user = findById(userId);
+        User friend = findById(friendId);
+
+        if (user.isFriend(friendId) || friend.isFriend(userId)) {
+            user.removeFriend(friendId);
+            storage.update(user);
+        }
+    }
+
+    public List<User> findAllFriends(int userId) {
+        User user = findById(userId);
+
+        return user.getFriends().stream()
+                .map(storage::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+    }
+
+    public List<User> findCommonFriends(int userId, int friendId) {
+        User user = findById(userId);
+        User friend = findById(friendId);
+
+        return user.getFriends()
+                .stream()
+                .filter(commonFriend -> friend.getFriends().contains(commonFriend))
+                .map(this::findById)
+                .toList();
     }
 
     private void replaceUserNameIfItsBlank(User user) {

@@ -56,10 +56,13 @@ public class FilmService {
 
     public Film create(Film film) {
         validateFilm(film);
+
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
+        validateFilm(film);
+
         findById(film.getId());
 
         return filmStorage.update(film);
@@ -73,10 +76,13 @@ public class FilmService {
         int mpaId = film.getMpa().getId();
         mpaStorage.findById(mpaId).orElseThrow(() -> new ValidationException("Фильму задан некорректный MPA с id: " + mpaId));
 
-        List<Genre> genres = genreStorage.findAll();
-        for (Genre genre : film.getGenres()) {
-            if (!genres.contains(genre)) {
-                throw new ValidationException("Фильму присвоен некорректный жанр с id: " + genre.getId());
+        List<Integer> genres = genreStorage.findAll().stream()
+                .map(Genre::getId)
+                .toList();
+
+        for (int genreId : film.getGenres().stream().map(Genre::getId).toList()) {
+            if (!genres.contains(genreId)) {
+                throw new ValidationException("Фильму присвоен некорректный жанр с id: " + genreId);
             }
         }
     }
