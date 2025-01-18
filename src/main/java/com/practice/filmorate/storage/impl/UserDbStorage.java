@@ -32,9 +32,7 @@ public class UserDbStorage implements FullStorage<User> {
                 .stream()
                 .findFirst();
 
-        if (user.isPresent()) {
-            user.get().setFriends(getFriendsByUserId(id));
-        }
+        user.ifPresent(value -> value.setFriends(getFriendsByUserId(id)));
 
 
         return user;
@@ -76,6 +74,29 @@ public class UserDbStorage implements FullStorage<User> {
         updateFriendsTable(user);
 
         return user;
+    }
+
+    @Override
+    public void delete(int id) {
+        String deleteUsersQuery = """
+                DELETE FROM users
+                WHERE id = ?
+                """;
+
+        String deleteFriendsQuery = """
+                DELETE FROM friends
+                WHERE user_id = ?
+                OR friend_id = ?
+                """;
+
+        String deleteLikesQuery = """
+                DELETE FROM likes
+                WHERE user_id = ?
+                """;
+
+        jdbcTemplate.update(deleteFriendsQuery, id, id);
+        jdbcTemplate.update(deleteLikesQuery, id);
+        jdbcTemplate.update(deleteUsersQuery, id);
     }
 
     private User mapRow(ResultSet rs, int rowNum) throws SQLException {

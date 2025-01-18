@@ -34,7 +34,7 @@ public class DirectorController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable int id) {
-        service.deleteById(id);
+    public void delete(@PathVariable int id) {
+        service.delete(id);
     }
 }

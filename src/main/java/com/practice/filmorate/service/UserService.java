@@ -39,6 +39,12 @@ public class UserService {
         return storage.update(user);
     }
 
+    public void delete(int id) {
+        validate(findById(id));
+
+        storage.delete(id);
+    }
+
     public void addFriend(int userId, int friendId) {
         User user = findById(userId);
         User friend = findById(friendId);

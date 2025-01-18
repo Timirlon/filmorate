@@ -54,17 +54,23 @@ public class FilmService {
     }
 
     public Film create(Film film) {
-        validateFilm(film);
+        validate(film);
 
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
-        validateFilm(film);
+        validate(film);
 
         findById(film.getId());
 
         return filmStorage.update(film);
+    }
+
+    public void delete(int id) {
+        validate(findById(id));
+
+        filmStorage.delete(id);
     }
 
     public List<Film> findByDirectorId(int directorId, String sortBy) {
@@ -86,7 +92,7 @@ public class FilmService {
         userStorage.findById(id).orElseThrow(() -> new NotFoundException("Недействительный id пользователя: " + id));
     }
 
-    private void validateFilm(Film film) {
+    private void validate(Film film) {
         int mpaId = film.getMpa().getId();
         mpaStorage.findById(mpaId).orElseThrow(() -> new ValidationException("Фильму задан некорректный MPA с id: " + mpaId));
 

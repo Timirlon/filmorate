@@ -110,6 +110,35 @@ public class FilmDbStorage implements FullStorage<Film> {
         return film;
     }
 
+    @Override
+    public void delete(int id) {
+        String deleteFilmsQuery = """
+                DELETE FROM films
+                WHERE id = ?
+                """;
+
+        String deleteFilmsDirectorsQuery = """
+                DELETE FROM films_directors
+                WHERE film_id = ?
+                """;
+
+        String deleteFilmsGenresQuery = """
+                DELETE FROM films_genres
+                WHERE film_id = ?
+                """;
+
+        String deleteLikesQuery = """
+                DELETE FROM likes
+                WHERE film_id = ?
+                """;
+
+
+        jdbcTemplate.update(deleteFilmsDirectorsQuery, id);
+        jdbcTemplate.update(deleteFilmsGenresQuery, id);
+        jdbcTemplate.update(deleteLikesQuery, id);
+        jdbcTemplate.update(deleteFilmsQuery, id);
+    }
+
     public void addLike(int userId, int filmId) {
         String insertQuery = """
                 INSERT INTO likes (film_id, user_id)
@@ -144,7 +173,6 @@ public class FilmDbStorage implements FullStorage<Film> {
 
         return jdbcTemplate.query(getByDir, this::mapRow, directorId);
     }
-
 
     private Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         int filmId = rs.getInt("film_id");

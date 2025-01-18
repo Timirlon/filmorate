@@ -32,9 +32,9 @@ public class DirectorService {
         return storage.update(director);
     }
 
-    public void deleteById(int id) {
+    public void delete(int id) {
         findById(id);
 
-        storage.deleteById(id);
+        storage.delete(id);
     }
 }

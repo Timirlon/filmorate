@@ -62,7 +62,8 @@ public class DirectorDbStorage implements FullStorage<Director> {
         return director;
     }
 
-    public void deleteById(int id) {
+    @Override
+    public void delete(int id) {
         String delete = """
                 DELETE FROM directors
                 WHERE id = ?

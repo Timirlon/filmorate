@@ -4,4 +4,6 @@ public interface FullStorage<T> extends BaseStorage<T> {
     T create(T t);
 
     T update(T t);
+
+    void delete(int id);
 }
