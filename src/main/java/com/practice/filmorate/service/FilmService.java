@@ -9,7 +9,8 @@ import com.practice.filmorate.model.User;
 import com.practice.filmorate.storage.BaseStorage;
 import com.practice.filmorate.storage.FullStorage;
 import com.practice.filmorate.storage.impl.FilmDbStorage;
-import com.practice.filmorate.utils.FilmComparator;
+import com.practice.filmorate.utils.FilmLikesComparator;
+import com.practice.filmorate.utils.FilmReleaseComparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -67,13 +68,18 @@ public class FilmService {
     }
 
     public List<Film> findByDirectorId(int directorId, String sortBy) {
+        List<Film> films = filmStorage.findByDirectorId(directorId);
 
-        if (sortBy.equals("likes")) {
-            return filmStorage.findByDirectorId(directorId, sortBy).stream()
-                    .sorted(new FilmComparator()).toList();
+        if (sortBy != null && sortBy.equals("likes")) {
+            films = films.stream().sorted(new FilmLikesComparator()).toList();
         }
 
-        return filmStorage.findByDirectorId(directorId, sortBy);
+        if (sortBy != null && sortBy.equals("year")) {
+            films = films.stream().sorted(new FilmReleaseComparator()).toList();
+        }
+
+
+        return films;
     }
 
     private void checkIfUserExists(int id) {

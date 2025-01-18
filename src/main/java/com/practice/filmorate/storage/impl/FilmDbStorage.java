@@ -130,7 +130,7 @@ public class FilmDbStorage implements FullStorage<Film> {
         return jdbcTemplate.query(getPopularQuery, this::mapRow, count);
     }
 
-    public List<Film> findByDirectorId(int directorId, String sortBy) {
+    public List<Film> findByDirectorId(int directorId) {
         String getByDir = GET_ALL_QUERY + """
                 JOIN films_directors fd
                 ON f.id = fd.film_id
@@ -141,9 +141,6 @@ public class FilmDbStorage implements FullStorage<Film> {
                 WHERE d.id = ?
                 """;
 
-        if (sortBy.equals("year")) {
-            getByDir += "ORDER BY release";
-        }
 
         return jdbcTemplate.query(getByDir, this::mapRow, directorId);
     }
