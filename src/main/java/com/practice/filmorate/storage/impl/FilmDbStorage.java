@@ -171,7 +171,7 @@ public class FilmDbStorage implements FullStorage<Film> {
         return new HashSet<>(jdbcTemplate.query(getLikesQuery, this::mapRowLike, id));
     }
 
-    private void insertIntoFilmsGenresTable(Film film /*int filmId, int userID*/) {
+    private void insertIntoFilmsGenresTable(Film film) {
         if (film.getGenres().isEmpty()) {
             return;
         }

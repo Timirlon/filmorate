@@ -30,6 +30,7 @@ public class Film {
 
     final Set<Genre> genres = new HashSet<>();
     final Set<Integer> likes = new HashSet<>();
+    final Set<Director> directors = new HashSet<>();
 
 
     public void addLike(int userId) {
@@ -51,5 +52,9 @@ public class Film {
 
     public void addLikes(Collection<Integer> newLikes) {
         likes.addAll(newLikes);
+    }
+
+    public void addDirectors(Collection<Director> newDirectors) {
+        directors.addAll(newDirectors);
     }
 }

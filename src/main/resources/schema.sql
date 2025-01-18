@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS genres CASCADE;
 DROP TABLE IF EXISTS films_genres CASCADE;
 DROP TABLE IF EXISTS friends CASCADE;
 DROP TABLE IF EXISTS likes CASCADE;
+DROP TABLE IF EXISTS directors CASCADE;
+DROP TABLE IF EXISTS films_directors CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa (
                      id SERIAL PRIMARY KEY,
@@ -50,4 +52,15 @@ CREATE TABLE IF NOT EXISTS likes (
                        film_id INT REFERENCES films,
                        user_id INT REFERENCES users,
                        PRIMARY KEY (film_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS directors (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS films_directors (
+    film_id INT REFERENCES films,
+    director_id INT REFERENCES directors,
+    PRIMARY KEY (film_id, director_id)
 );
