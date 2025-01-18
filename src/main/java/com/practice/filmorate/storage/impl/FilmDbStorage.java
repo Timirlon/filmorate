@@ -1,5 +1,6 @@
 package com.practice.filmorate.storage.impl;
 
+import com.practice.filmorate.model.Director;
 import com.practice.filmorate.model.Film;
 import com.practice.filmorate.model.Genre;
 import com.practice.filmorate.model.Mpa;
@@ -52,6 +53,8 @@ public class FilmDbStorage implements FullStorage<Film> {
             value.addGenres(getGenresByFilmId(id));
 
             value.addLikes(getLikesByFilmId(id));
+
+            value.addDirectors(getDirectorsByFilmId(id));
         }
 
         return film;
@@ -79,6 +82,8 @@ public class FilmDbStorage implements FullStorage<Film> {
 
         insertIntoLikesTable(film);
 
+        insertIntoFilmsDirectorsTable(film);
+
 
         return film;
     }
@@ -98,6 +103,9 @@ public class FilmDbStorage implements FullStorage<Film> {
         updateFilmsGenresTable(film);
 
         updateLikesTable(film);
+
+        updateFilmsDirectorsTable(film);
+
 
         return film;
     }
@@ -169,6 +177,13 @@ public class FilmDbStorage implements FullStorage<Film> {
         return rs.getInt("user_id");
     }
 
+    private Director mapRowDirector(ResultSet rs, int rowNum) throws SQLException {
+        int id = rs.getInt("id");
+        String name = rs.getString("name");
+
+        return new Director(id, name);
+    }
+
     private Set<Genre> getGenresByFilmId(int id) {
         String getGenresQuery = """
                 SELECT g.id, g.name FROM genres g
@@ -187,6 +202,18 @@ public class FilmDbStorage implements FullStorage<Film> {
                 """;
 
         return new HashSet<>(jdbcTemplate.query(getLikesQuery, this::mapRowLike, id));
+    }
+
+    private Set<Director> getDirectorsByFilmId(int id) {
+        String getDirectorsQuery = """
+                SELECT d.id AS id, d.name AS name
+                FROM directors d
+                JOIN films_directors fd
+                ON d.id = fd.film_id
+                WHERE film_id = ?
+                """;
+
+        return new HashSet<>(jdbcTemplate.query(getDirectorsQuery, this::mapRowDirector, id));
     }
 
     private void insertIntoFilmsGenresTable(Film film) {
@@ -215,6 +242,21 @@ public class FilmDbStorage implements FullStorage<Film> {
         }
     }
 
+    private void insertIntoFilmsDirectorsTable(Film film) {
+        if (film.getDirectors().isEmpty()) {
+            return;
+        }
+
+        String insertQuery = """
+        INSERT INTO films_directors (film_id, director_id)
+        VALUES (?, ?)
+        """;
+
+        for (Director director : film.getDirectors()) {
+            jdbcTemplate.update(insertQuery, film.getId(), director.getId());
+        }
+    }
+
     private void updateFilmsGenresTable(Film film) {
         String deleteQuery = "DELETE FROM films_genres WHERE film_id = ?";
         jdbcTemplate.update(deleteQuery, film.getId());
@@ -227,5 +269,12 @@ public class FilmDbStorage implements FullStorage<Film> {
         jdbcTemplate.update(deleteQuery, film.getId());
 
         insertIntoLikesTable(film);
+    }
+
+    private void updateFilmsDirectorsTable(Film film) {
+        String deleteQuery = "DELETE FROM films_directors WHERE film_id = ?";
+        jdbcTemplate.update(deleteQuery, film.getId());
+
+        insertIntoFilmsDirectorsTable(film);
     }
 }
