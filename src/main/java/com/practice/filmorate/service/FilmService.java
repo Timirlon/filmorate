@@ -9,7 +9,6 @@ import com.practice.filmorate.model.User;
 import com.practice.filmorate.storage.BaseStorage;
 import com.practice.filmorate.storage.FullStorage;
 import com.practice.filmorate.storage.impl.FilmDbStorage;
-import com.practice.filmorate.utils.FilmComparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,9 +77,9 @@ public class FilmService {
                 .map(Genre::getId)
                 .toList();
 
-        for (int genreId : film.getGenres().stream().map(Genre::getId).toList()) {
-            if (!genres.contains(genreId)) {
-                throw new ValidationException("Фильму присвоен некорректный жанр с id: " + genreId);
+        for (Genre genre : film.getGenres()) {
+            if (!genres.contains(genre.getId())) {
+                throw new ValidationException("Фильму присвоен некорректный жанр с id: " + genre.getId());
             }
         }
     }

@@ -20,8 +20,14 @@ public class FilmDbStorage implements FullStorage<Film> {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_ALL_QUERY = """
-            SELECT f.id AS film_id, f.name AS film_name, f.description AS film_desc, f.RELEASE_DATE AS release, f.duration AS duration,
-            m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_desc
+            SELECT f.id AS film_id,
+                f.name AS film_name,
+                f.description AS film_desc,
+                f.RELEASE_DATE AS release,
+                f.duration AS duration,
+                m.id AS mpa_id,
+                m.name AS mpa_name,
+                m.description AS mpa_desc
             FROM films f
             JOIN mpa m ON f.mpa_id = m.id
             """;
