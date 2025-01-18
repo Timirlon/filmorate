@@ -23,7 +23,7 @@ public class FilmDbStorage implements FullStorage<Film> {
             SELECT f.id AS film_id,
                 f.name AS film_name,
                 f.description AS film_desc,
-                f.RELEASE_DATE AS release,
+                f.release_date AS release,
                 f.duration AS duration,
                 m.id AS mpa_id,
                 m.name AS mpa_name,
@@ -120,6 +120,24 @@ public class FilmDbStorage implements FullStorage<Film> {
                 """;
 
         return jdbcTemplate.query(getPopularQuery, this::mapRow, count);
+    }
+
+    public List<Film> findByDirectorId(int directorId, String sortBy) {
+        String getByDir = GET_ALL_QUERY + """
+                JOIN films_directors fd
+                ON f.id = fd.film_id
+                JOIN directors d
+                ON fd.director_id = d.id
+                JOIN likes l
+                ON f.id = l.film_id
+                WHERE d.id = ?
+                """;
+
+        if (sortBy.equals("year")) {
+            getByDir += "ORDER BY release";
+        }
+
+        return jdbcTemplate.query(getByDir, this::mapRow, directorId);
     }
 
 

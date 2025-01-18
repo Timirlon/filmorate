@@ -9,6 +9,7 @@ import com.practice.filmorate.model.User;
 import com.practice.filmorate.storage.BaseStorage;
 import com.practice.filmorate.storage.FullStorage;
 import com.practice.filmorate.storage.impl.FilmDbStorage;
+import com.practice.filmorate.utils.FilmComparator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +64,16 @@ public class FilmService {
         findById(film.getId());
 
         return filmStorage.update(film);
+    }
+
+    public List<Film> findByDirectorId(int directorId, String sortBy) {
+
+        if (sortBy.equals("likes")) {
+            return filmStorage.findByDirectorId(directorId, sortBy).stream()
+                    .sorted(new FilmComparator()).toList();
+        }
+
+        return filmStorage.findByDirectorId(directorId, sortBy);
     }
 
     private void checkIfUserExists(int id) {
