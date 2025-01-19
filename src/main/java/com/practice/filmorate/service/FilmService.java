@@ -74,18 +74,7 @@ public class FilmService {
     }
 
     public List<Film> findByDirectorId(int directorId, String sortBy) {
-        List<Film> films = filmStorage.findByDirectorId(directorId);
-
-        if (sortBy != null && sortBy.equals("likes")) {
-            films = films.stream().sorted(new FilmLikesComparator()).toList();
-        }
-
-        if (sortBy != null && sortBy.equals("year")) {
-            films = films.stream().sorted(new FilmReleaseComparator()).toList();
-        }
-
-
-        return films;
+        return filmStorage.findByDirectorId(directorId, sortBy);
     }
 
     private void checkIfUserExists(int id) {

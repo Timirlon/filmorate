@@ -159,19 +159,30 @@ public class FilmDbStorage implements FullStorage<Film> {
         return jdbcTemplate.query(getPopularQuery, this::mapRow, count);
     }
 
-    public List<Film> findByDirectorId(int directorId) {
+    public List<Film> findByDirectorId(int directorId, String sortBy) {
         String getByDir = GET_ALL_QUERY + """
                 JOIN films_directors fd
-                ON f.id = fd.film_id
-                JOIN directors d
-                ON fd.director_id = d.id
-                JOIN likes l
-                ON f.id = l.film_id
+                              ON f.id = fd.film_id
+                         JOIN directors d
+                              ON fd.director_id = d.id
+                         LEFT JOIN likes l
+                              ON f.id = l.film_id
                 WHERE d.id = ?
+                group by f.id
                 """;
 
+        if (sortBy != null && sortBy.equals("likes")) {
+            getByDir += "ORDER BY COUNT(l.user_id) DESC";
+        }
 
-        return jdbcTemplate.query(getByDir, this::mapRow, directorId);
+        if (sortBy != null && sortBy.equals("year")) {
+            getByDir += "ORDER BY f.release_date";
+        }
+
+        return jdbcTemplate.query(getByDir, this::mapRow, directorId)
+                .stream()
+                .peek(film -> film.addDirectors(getDirectorsByFilmId(film.getId())))
+                .toList();
     }
 
     private Film mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -234,7 +245,7 @@ public class FilmDbStorage implements FullStorage<Film> {
                 SELECT d.id AS id, d.name AS name
                 FROM directors d
                 JOIN films_directors fd
-                ON d.id = fd.film_id
+                ON d.id = fd.director_id
                 WHERE film_id = ?
                 """;
 
